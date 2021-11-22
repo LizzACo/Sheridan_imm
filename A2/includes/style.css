@@ -1,0 +1,79 @@
+/* style.css */
+@import url("https://fonts.googleapis.com/css2?family=Fauna+One&family=Playfair+Display:wght@600;700;900&display=swap");
+
+nav > ul {
+  background-color: rgba(71, 42, 122, 70%);
+  padding: 2.5%;
+}
+
+ul > a {
+  color: rgb(210, 239, 253);
+  padding-right: 2%;
+  font-size: 1.1em;
+  font-family: "Playfair Display", serif;
+}
+
+body {
+  font-size: 16px;
+  background-color: rgba(255, 255, 255, 0.55);
+  margin-left: 2%;
+  margin-right: 2%;
+  justify-content: space-around;
+}
+
+h1,
+h2,
+h3 {
+  text-align: center;
+}
+
+h1,
+h2,
+h3 {
+  font-size: 1.5em;
+  font-family: "Playfair Display", serif;
+}
+
+h1 {
+  font-weight: 900;
+}
+
+h2 {
+  font-weight: 700;
+}
+
+h3 {
+  font-weight: 600;
+}
+
+h1,
+h2,
+h3 {
+  margin-left: 20%;
+  margin-right: 20%;
+  padding-left: 10%;
+  padding-right: 10%;
+}
+
+h2,
+h3 {
+  margin-top: 0;
+}
+
+img {
+  width: 50%;
+  margin-left: 20%;
+  margin-right: 20%;
+  margin-bottom: 3%;
+  padding-left: 5%;
+  padding-right: 5%;
+}
+
+#box,
+#linkBox {
+  margin: 3% 5em;
+}
+
+p {
+  font-family: "Fauna One", serif;
+}
