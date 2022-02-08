@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>NFT Generative Art</title>
+
+<meta property="og:image" content="assets/gnart.gif" />
+
+<script src="scripts/createjs.js"></script>
+<script src="scripts/zim_min.js"></script>
+<script src="scripts/pen.js"></script>
+<script src="scripts/buttons.js"></script>
+
+<script>
+const assets = [{font:"SupermercadoOne", src:"SupermercadoOne-Regular.ttf"}]//"Acme-Regular.ttf", "SupermercadoOne-Regular.ttf",
+
+const path = "assets/"; // relative path
+
+const frame = new Frame(FIT, 1024, 768, black, dark, assets, path);
+frame.on("ready", () => {
+    const stage = frame.stage;
+    let stageW = frame.width;
+    let stageH = frame.height;
+
+    let controller;
+    let type = ["line","kitetail","barbwire","grass","hair","city","splatter"];
+    const colors = [blue,purple,red,orange,pink,white];
+
+    let opening = new Label("Masterpiece",150,"SupermercadoOne",white)
+        .centerReg()
+
+    opening.on("click",() => {
+        opening.animate({
+            alpha:.15,
+            time:.3,
+            call:creation
+        });
+    });
+
+    // put your code here
+    function creation(){
+        let color = shuffle(colors)[0].toAlpha(.3);
+        on = true;
+        let c = new genA.penAnimate();
+        Ticker.add(() => {
+             c.penType = type[controller.currentValue];
+             c.size += controller.currentValue * rand(0.1,controller.currentValue,false);
+             c.color = shuffle(colors)[0].toAlpha(rand(0.1,0.66,false));
+        });
+        controller = new genA.controller(null,"index.html");
+
+        return c;
+    }
+    //creation();
+
+
+
+
+    stage.update(); // needed to view changes
+});
+
+</script>
+<meta name="viewport" content="width=device-width, user-scalable=no" />
+</head>
+<body></body>
+</html>

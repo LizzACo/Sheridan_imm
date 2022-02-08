@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>ZIM - Code Creativity</title>
+
+<!-- zimjs.com - JavaScript Canvas Framework -->
+<script src="https://zimjs.org/cdn/nft/00/zim.js"></script>
+
+<script>
+// Reference:
+//image source of the frame: https://www.doodlecraftblog.com/2015/02/vintage-gold-gilded-frames-free.html?utm_source=feedburner&utm_medium=email&utm_campaign=Feed:+DoodleCraft+(Doodle+Craft...)
+//painting: Mona Lisa by Leonardo da Vinci)
+//music: Moonlight Sonata by Ludwig van Beethoven remixed by Alice Zhao
+
+//starlight source code:https://codepen.io/danzen/pen/qBBEmjQ by Dan Zen
+
+
+const scaling = FIT; // this will resize to fit inside the screen dimensions
+const width = 1024;
+const height = 768;
+const radius = 360; //this changes the size of the circle
+const color = "#140c25";
+const assets = ["moonlightSonata.mp3","mona.jpg","face2.png","face.png","logo.png","frame.png",{font:"lobster", src:"LobsterTwo-Regular.ttf"}];
+const path = "assets/";
+
+//  c1 = color("#140c35");//dark blue
+// 	c2 = color("#2a9d8f");//green blue
+// 	c3 = color("#edf683");//light yellow
+// 	c4 = color("#fcfdef");//creamy white
+
+const frame = new Frame(scaling, width, height, color, color, assets, path);
+
+frame.on("ready", () => {
+    const stage = frame.stage;
+    let stageW = frame.width;
+    let stageH = frame.height;
+
+    STYLE = {font:"lobster", color:purple.darken(.5),size:46};
+    const opening = new Pane(500, 300, "Interact With the Painting",yellow.toAlpha(.8)).show();
+
+    opening.on("close", painting);
+
+    asset("logo.png")
+        .scaleTo(opening)
+        .noMouse()
+        .centerReg()
+        .pos(0, -40, CENTER,BOTTOM)
+        .sca(.16);
+
+    function painting(){
+
+        asset("moonlightSonata.mp3").play({loop:true, volume: .369});
+
+        let speed = 33;
+        let opc = .8;
+        let blur = 9;
+
+        const num = 6; // how many spinning shapes with rings
+        const size = 5; // width of each ring
+        const spacing = size*(num-size/9);
+
+        const starlight = ["#fdf0d5","#e9c46a","#34a0a4","#01497c"];//warm yellow, dark yellow, yellow green, dark blue
+        const stars = "rgba(244, 241, 222, .66)"//light yellow
+
+        function vortex(num, alpha) {
+            let ring = radius + spacing * num * 2; // with spacing, rings end up larger than radius
+
+            loop(num, k =>{
+                const container = new Container()
+                .loc(rand(0 + 33, stageW - 50), rand(0+33, stageH - 66))
+                .sca(rand(.36,.5))
+                .animate({
+                    props:{rotation:360*(k%2==0?1:-1)}, // spin oposite ways
+                    ease:"linear",
+                    loop:true,
+                    time:speed
+                });
+                let shape = new Shape(-ring, -ring, ring*2, ring*2).addTo(container);
+                loop(radius / (size + spacing), (i,t)=>{ // i is loop num, t is total loops
+                    // prepare for making arcs on rings
+                    // let there be 6 arcs and then a spacing for each
+                    let tot = rand(6) * 2; // even
+                    // to divide these randomly, roll random numbers
+                    // then add them up and divide by total
+                    // apply the ratios to 360 degrees
+                    let divisors = [];
+                    loop(tot, j => {divisors.push(rand());});
+                    let amount = divisors.reduce((a,b) => a+b,0);
+                    divisors = divisors.map(x => x/amount*360);
+                    // pic a random starting angle
+                    let start = rand(360);
+                    let last = start;
+                    // add arcs on ring at radius rr and angle last to last+next divisor angle
+                    // prefered the arcs to be generally longer than space between so multiplied by 1.5
+                    // could have divided the spacing arc by 1.5 but liked it better without doing that
+                    loop(divisors, (d,j) => {
+                        // tweak the arcs to not show white arcs at outer edges
+                        // and not show blendmode arcs at inner edges
+                        if ((num!=2 || (i<t-2)) && (num!=4 || (i>3))) {
+                            // calculate radius of ring
+                            let rr = spacing*k + i*(size+spacing);
+                            if (j%2==0) { // alternate making arcs and leaving spaces
+    									 // want to make the white dots brighter so drop the opacity of arc
+                                makeArc(shape, num==2?stars:starlight[3], rr, last, last+d*1.2);
+                                makeArc(shape, num==2?stars:starlight[2], rr, last, last+d*.9);
+                                makeArc(shape, num==2?stars:starlight[1], rr, last, last+d*.6);
+                                makeArc(shape, num==2?stars:starlight[0], rr, last, last+d*.3);
+                            } else {
+                                // add a dot roughly between the arcs
+                                // at the angle and radius (cos and sin the angle for x and y)
+                                // end stroke before starting and end fill afterwards
+                                let angle = last + d/2;
+                                shape.graphics.f(stars).es().dc(rr*Math.cos(rand(angle)),rr*Math.sin(rand(angle)),size/2.4).ef();
+                            }
+                        }
+                        last = last + d; // add the divisor to the last total (ring or no ring)
+                    });
+                });
+                shape.alp(alpha); // cache the ring for performance and set alpha
+            });
+        }
+        function makeArc(shape, color, radius, startAngle, endAngle) {
+            shape.graphics.s(color).ss(size, "round").a(0,0,radius,startAngle*Math.PI/180,endAngle*Math.PI/180);
+        }
+
+        vortex(num, opc);
+
+        let portrait = asset("mona.jpg")
+        .sca(.3)
+        .alp(opc + .2)
+        .centerReg();
+
+        let face = asset("face.png")
+        .sca(.2)
+        .alp(opc)
+        .effect(new BlurEffect(blur))
+        .centerReg();
+
+        let faceAlt = asset("face2.png")
+        .sca(.3)
+        .alp(opc);
+
+        let picFrame = asset("frame.png")
+        .sca(.5)
+        .alp(opc)
+        .centerReg();
+
+        new Parallax([
+        {obj:portrait, prop:"x",propChange:stageW - 99},
+        {obj:face, prop:"x",propChange:50},
+        {obj:face, prop:"y", input:"mouseY",propChange:-100},
+        {obj:face, prop:"scale",input:"mouseY",propChange:.6},
+        {obj:picFrame, prop:"x",propChange:250}
+        ]);
+
+    Ticker.add(() => {
+        if(frame.mouseY - 6 <= face.y && frame.mouseX >= face.x){
+            face.removeFrom();
+            faceAlt.centerReg();
+        } else {
+            faceAlt.removeFrom();
+            face.centerReg();
+        }
+    });
+        vortex(num/2, opc/2);
+    }
+
+});
+
+</script>
+<meta name="viewport" content="width=device-width, user-scalable=no" />
+</head>
+<body></body>
+</html>

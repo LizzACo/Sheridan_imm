@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>ZIM - Code Creativity</title>
+
+<!-- zimjs.com - JavaScript Canvas Framework -->
+<script src="https://zimjs.org/cdn/nft/00/zim.js"></script>
+
+<script>
+
+const scaling = FIT; // this will resize to fit inside the screen dimensions
+const width = 1024;
+const height = 768;
+const radius = 350;
+const color = "#140c25";
+const outerColor = "#140c25";
+
+// we apply an alpha blendMode to the rings
+// but do not want to apply the blendMode to the backing circle gradient
+// so put the backing in a separate frame with its own canvas
+const backing = new Frame(scaling, width, height, color, outerColor);
+    backing.on("ready", () => {
+        let c = new Circle(radius).center().alp(.95);
+        c.radialGradient([orange,"yellow","#1dada4","#140c35"],[0,.4,.7, 1], 0,0,0, 0,0,radius)
+        backing.stage.update(); // to update the stage of the backing
+    });
+
+const frame = new Frame(scaling, width, height);
+frame.on("ready", function() {
+    zog("ready from ZIM Frame"); // logs in console (F12 - choose console)
+
+    let stage = frame.stage;
+    let stageW = frame.width;
+    let stageH = frame.height;
+
+    // addTo(), center(), centerReg(), loc(), pos(), Ticker.add()
+    // default to the stage of the first frame made
+    // this will set the default stage to this frame
+    zimDefaultFrame = frame;
+    // frame.setDefault();
+
+    const num = 4; // how many spinning shapes with rings
+    const size = 3; // width of each ring
+    const spacing = size*(num-1); // eg. four sets will each have three widths between rings
+
+    // two vortexes are overlayed on each other
+    // one has a blendmode that matches the color of a foil
+    // the other applies white rings with a low alpha (.2)
+    function vortex(num, alpha) {
+        let r = radius+spacing*num*2; // with spacing, rings end up larger than radius - could fix, but like
+        loop(num, k=>{
+            let shape = new Shape(-r, -r, r*2, r*2).center().animate({
+                props:{rotation:360*(k%2==0?1:-1)}, // spin oposite ways
+                ease:"linear",
+                loop:true,
+                time:rand(30000,50000)
+            });
+            // make the number of rings and spacings to fit within radius
+            loop(radius/(size+spacing), (i,t)=>{ // i is loop num, t is total loops
+                // prepare for making arcs on rings
+                // let there be 3-8 arcs and then a spacing for each
+                let tot = rand(3,8)*2; // even
+                // to divide these randomly, roll random numbers
+                // then add them up and divide by total
+                // apply the ratios to 360 degrees
+                let divisors = [];
+                loop(tot, j=>{divisors.push(rand());});
+                let amount = divisors.reduce((a,b)=>a+b,0);
+                divisors = divisors.map(x=>x/amount*360);
+                // pic a random starting angle
+                let start = rand(360);
+                let last = start;
+                // add arcs on ring at radius rr and angle last to last+next divisor angle
+                // prefered the arcs to be generally longer than space between so multiplied by 1.5
+                // could have divided the spacing arc by 1.5 but liked it better without doing that
+                loop(divisors, (d,j)=>{
+                    // tweak the arcs to not show white arcs at outer edges
+                    // and not show blendmode arcs at inner edges
+                    if ((num!=2 || (i<t-2)) && (num!=4 || (i>3))) {
+                        // calculate radius of ring
+                        let rr = spacing*k + i*(size+spacing);
+                        if (j%2==0) { // alternate making arcs and leaving spaces
+									 // want to make the white dots brighter so drop the opacity of arc
+                            makeArc(shape, num==2?"rgba(255,255,255,.5)":white, rr, last, last+d*1.5);
+                        } else {
+                            // add a white dot roughly between the arcs
+                            // at the angle and radius (cos and sin the angle for x and y)
+                            // end stroke before starting and end fill afterwards
+                            let angle = last+d/2;
+                            shape.graphics.f(white).es().dc(rr*Math.cos(angle),rr*Math.sin(angle),size/2).ef();
+                        }
+                    }
+                    last = last + d; // add the divisor to the last total (ring or no ring)
+                });
+            });
+            shape.cache().alp(alpha); // cache the ring for performance and set alpha
+        });
+    }
+
+    function makeArc(shape, color, radius, startAngle, endAngle) {
+        shape.graphics.s(color).ss(size, "round").a(0,0,radius,startAngle*Math.PI/180,endAngle*Math.PI/180);
+    }
+
+    vortex(num, 1); // make a vortex with full alpha to get blendmode below
+
+    // this will turn the white rings to the colors here
+    // note, this gradient is slightly off the underneath backing
+    // this makes the colors just a touch off
+    var foil = new Circle(radius).center();
+    foil.radialGradient([orange,"yellow","#1dada4","#140c35"],[.1,.3,.8,.9], 0,0,0, 0,0,radius)
+    foil.blendMode = "source-in";
+
+    vortex(num/2, .3); // make a vortex of white at an alpha of .2
+
+    // add the planet and moon
+    // to rotate a planet, set a large registration point and rotate
+    const planet = new Circle(50).center().reg(-radius*.6).animate({
+        props:{rotation:-360},
+        time:50000,
+        loop:true,
+        ease:"linear"
+    })
+    planet.radialGradient(["#538a75","#19314d"],[0,.5], 35,0,85, 0,0,0)
+
+    // set a large registration point of the moon container and add it to the planet
+    // then rotate the moon container
+    const moon = new Container(40,40).centerReg(planet).reg(planet.radius*2).animate({
+        props:{rotation:-360},
+        time:10000,
+        loop:true,
+        ease:"linear"
+    });
+
+    // create a moonBody for inside the moon container
+    // we will later rotate the moon body to face the vortex (see Ticker)
+    const moonBody = new Circle(20,null,yellow).center(moon);
+    moonBody.radialGradient(["yellow",orange],[0,.5], 20,0,35, 0,0,0);
+
+    // make the bright side of the moon face the center of the vortex
+    // find the angle between the moonBody and the center of the vortex
+    // to do this locate the point inside the coordinate space of the moon
+    // that matches the center of the vortex which is at the center of the global stage
+    // Use the moonBody x and y and the point to calculate the angle with the atan2
+    Ticker.add(()=>{
+        let point = moon.globalToLocal(stageW/2, stageH/2);
+        let angle = Math.atan2(moonBody.y-point.y, moonBody.x-point.x)*180/Math.PI
+        moonBody.rot(angle);
+    });
+
+	// FOOTER
+	// call remote script to make ZIM Foundation for Creative Coding icon and a greet link
+	createIcon();
+	const greet = createGreet();
+	timeout(3000, ()=>{
+		greet.alp(0);
+	})
+});
+
+</script>
+<meta name="viewport" content="width=device-width, user-scalable=no" />
+</head>
+<body></body>
+</html>

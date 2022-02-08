@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Pandora Box</title>
+
+<!-- zimjs.com - JavaScript Canvas Framework -->
+<script src="https://zimjs.org/cdn/nft/00/zim.js"></script>
+<script src="https://zimjs.org/cdn/game_2.5.js"></script>
+<script>
+
+//credits:
+//images are all coming from unsplash
+//animal sounds are coming from freesound.org
+//other credits: Rick Astley -  Never Gonna Give You Up
+    //imgaes of Rick are coming from Never Gonna Give You Up official music video
+//Akira Fuse – Kimi ha Barayori Utsukushii
+//Tobey Fox - Megalovania
+    //imgaes of Sans(the skeleton) is coming from Bad Time Simulator (Sans Fight)
+
+
+const path = "assets/";
+const assets = [{font:"DMSerifText", src:"DMSerifText-Regular.ttf"},"Honk.mp3", "img1.jpeg", "img2.PNG", "img3.PNG", "img4.png", "img6.jpeg", "img7.jpeg", "img8.jpeg", "img9.jpeg","chest.jpg", "colorful.jpg", "weird.jpg", "chaos.jpg", "meow.mp3","rickroll.m4a","badTime.m4a","stg1.m4a","stg2.m4a"];
+
+const sound = ["Honk.mp3","meow.mp3", "rickroll.m4a", "badTime.m4a"];
+const img = ["img1.jpeg", "img2.PNG", "img3.PNG", "img4.png", "img6.jpeg", "img7.jpeg", "img8.jpeg", "img9.jpeg"];
+const levels = ["Trick", "Hide", "Run"];
+
+
+// See Docs under Frame for FIT, FILL, FULL, and TAG scaling modes
+const frame = new Frame(FIT, 1024, 768, blue, darker,assets,path);
+frame.on("ready", () => {
+    const stage = frame.stage;
+    let stageW = frame.width;
+    let stageH = frame.height;
+
+    STYLE = {font:"DMSerifText"};
+
+    const oracle = new Label({
+        text:"Release the hope, before the box is closed",
+        color: white,
+        align:CENTER
+    })
+        .sca(1.3);
+
+    const mission = new Pane(stageW,stageH,oracle).center();
+
+    asset("chest.jpg")
+        .scaleTo(mission)
+        .noMouse()
+        .center(mission,2)
+        .alp(.8)
+        .setMask(mission.backing);
+
+    const credit = new Label({
+        size:"50px",
+        text:"Please find the credits in the code",
+        color: white,
+        align:CENTER
+    })
+        .pos(0,20,CENTER,BOTTOM,mission)
+        .sca(1.5);
+
+    let start;
+    let mazBox;
+
+    //disable all the toggles for hittest
+    let hitCheck = false;
+    let frCheck = false;
+    let sdCheck = false;
+    let tdCheck = false;
+    let foCheck = false;
+    let endCheck = false;
+
+    //declare all hittest variables
+    let background;
+    let hope;
+    let ahh;
+    let secAhh;
+    let trap;
+    let sdtrap;
+    let tdtrap;
+    let end;
+
+    //declare the timer
+    let timer;
+
+    //the oracle
+    mission.on("close",() => {
+        startGame(0,firstLevel);
+    });
+
+    function startGame(num,level){
+        //make sure everything is cleared before enter next level
+        if (mazBox) mazBox.removeFrom();
+        if (background) background.removeFrom();
+
+        if (ahh) ahh.removeFrom();
+        if (secAhh) secAhh.removeFrom();
+        if (trap) trap.removeFrom();
+        if (sdtrap) sdtrap.removeFrom();
+        if (tdtrap) tdtrap.removeFrom();
+
+        if (end) end.removeFrom();
+        if (timer){
+            timer.stop();
+            timer.removeFrom();
+        }
+
+        if (hope) hope.noDrag().removeFrom();
+
+        hitCheck = false;
+        frCheck = false;
+        sdCheck = false;
+        tdCheck = false;
+        foCheck = false;
+        endCheck = false;
+
+        start = new Pane(stageW-200, stageH-200,levels[num])
+            .show();
+        start.label.sca(2.5);
+
+        start.on("close",level);
+        return start;
+    }
+
+    let over;
+    function gameover(){
+        over = new Pane(stageW-200, stageH-300, "You lost your hope").alp(.8).show().centerReg();
+        over.label.scale = 2;
+        over.label.color = red;
+
+        over.on("close", () => {
+            zgo("index.html");
+        });
+    }
+
+    //build all maze
+    let rectone;
+    let rectjump;
+    let recttwo;
+    let rectthree;
+
+    //frmaze().addTo();
+    function frmaze(){
+        mazBox = new Container();
+        rectone = new Rectangle(250, stageH/2,blue)
+            .centerReg()
+            .pos(300, 0, RIGHT, TOP)
+            .addTo(mazBox)
+        rectjump = new Rectangle(300, 50,blue)
+            .centerReg()
+            .pos(300, 100, CENTER, TOP)
+            .addTo(mazBox)
+        recttwo = new Rectangle(stageW-130, 200, blue)
+            .centerReg()
+            .pos(50, 0, RIGHT, CENTER)
+            .addTo(mazBox)
+        rectthree = new Rectangle(200, stageH/2, blue)
+            .centerReg()
+            .pos(50, 0, RIGHT, BOTTOM)
+            .addTo(mazBox)
+
+        return mazBox;
+    }
+
+    let rectfour;
+    //sdmaze().addTo();
+    function sdmaze(){
+        mazBox = new Container();
+        rectone = new Rectangle(250, 220,orange)
+            .centerReg()
+            .pos(140, 0, RIGHT, TOP)
+            .addTo(mazBox)
+        recttwo = new Rectangle(stageW-280, 150, orange)
+            .centerReg()
+            .pos(140, -220, RIGHT, CENTER)
+            .addTo(mazBox)
+        rectjump = new Rectangle(180, 280, orange)
+            .centerReg()
+            .pos(-120, -100, CENTER, CENTER)
+            .addTo(mazBox)
+        rectthree = new Rectangle(500, 300, orange)
+            .centerReg()
+            .pos(40, 50, CENTER, CENTER)
+            .addTo(mazBox)
+        rectfour = new Rectangle(180, 280, orange)
+            .centerReg()
+            .pos(200, 0, LEFT, BOTTOM)
+            .addTo(mazBox)
+
+        return mazBox;
+    }
+
+    let rectfive;
+    let rectsix;
+    let rectseven;
+    let recteight;
+
+    //tdmaze().addTo();
+    function tdmaze(){
+        mazBox = new Container();
+        rectone= new Rectangle(45, 100,black)
+            .centerReg()
+            .pos(190, 0, RIGHT, TOP)
+            .addTo(mazBox)
+        recttwo= new Rectangle(stageW-200, 100,black)
+            .centerReg()
+            .pos(-40, 90, CENTER, TOP)
+            .addTo(mazBox)
+        rectthree= new Rectangle(90, 200,black)
+            .centerReg()
+            .pos(240, -150, LEFT, CENTER)
+            .addTo(mazBox)
+        rectfour= new Rectangle(290, 100,black)
+            .centerReg()
+            .pos(40, -50, LEFT, CENTER)
+            .addTo(mazBox)
+        rectfive = new Rectangle(90, 200,black)
+            .centerReg()
+            .pos(40, 0, LEFT, CENTER)
+            .addTo(mazBox)
+        rectjump = new Rectangle(stageW/2, 50,black)
+            .centerReg()
+            .pos(40, 90, LEFT, CENTER)
+            .addTo(mazBox)
+        rectsix= new Rectangle(180, 230, black)
+            .centerReg()
+            .pos(320, 120, RIGHT, CENTER)
+            .addTo(mazBox)
+        rectseven= new Rectangle(stageW/2+100, 100, black)
+            .centerReg()
+            .pos(120, 100, LEFT, BOTTOM)
+            .addTo(mazBox)
+        recteight= new Rectangle(200, 100, black)
+            .centerReg()
+            .pos(150, 0, LEFT, BOTTOM)
+            .addTo(mazBox)
+
+        return mazBox;
+    };
+
+    let rick;
+    function rickRoll(){
+        rick = new Pane({width:300, height:300, backdropColor:clear, backdropClose:false});
+
+        asset(img[rand(0,2)])
+            .clone()
+            .scaleTo(rick)
+            .noMouse()
+            .centerReg(rick)
+            .setMask(rick.backing);
+
+        return rick;
+    };
+
+    let sans;
+    function badTime(){
+        sans = new Pane({width:300, height:300, backdropColor:clear, backdropClose:false});
+
+        asset(img[3])
+            .clone()
+            .scaleTo(sans)
+            .noMouse()
+            .centerReg(sans)
+            .setMask(sans.backing);
+
+        return sans;
+    };
+
+    let honk;
+    function goose(){
+        honk = new Pane({width:300, height:300, backdropColor:clear, backdropClose:false});
+
+        asset(img[rand(5,6)])
+            .clone()
+            .scaleTo(honk)
+            .noMouse()
+            .centerReg(honk)
+            .setMask(honk.backing);
+
+        return honk;
+    };
+
+    let meow;
+    function cat(){
+        meow = new Pane({width:300, height:300, backdropColor:clear, backdropClose:false});
+
+        asset(img[rand(7,8)])
+            .clone()
+            .scaleTo(meow)
+            .noMouse()
+            .centerReg(meow)
+            .setMask(meow.backing);
+
+        return meow;
+    }
+
+    let play;
+    //firstLevel();
+    function firstLevel(){
+        background = asset("colorful.jpg").center().sca(.7);
+        let backmusic = asset("stg1.m4a").play({loop:true});
+        frmaze().addTo().alp(.8);
+        ahh = new Rectangle(30,30,red).centerReg().pos(100,112,RIGHT,TOP).effect(new GlowEffect({blurX:10, blurY:10}));
+        secAhh = new Rectangle(80,80,red).centerReg().pos(100,0,LEFT,CENTER).effect(new GlowEffect({color:pink, blurX:10, blurY:10}));
+        end = new Rectangle(120,120,red).centerReg().pos(90,10,RIGHT,BOTTOM).alp(0);
+        hope = new Circle(20,white).centerReg().pos(80,0,CENTER,TOP).drag().effect(new GlowEffect({blurX:30, blurY:30}));
+        timer = new Timer({time:15}).pos(0,0,LEFT,TOP);
+
+        timer.animate({
+            props:{scale:2,color:red},
+            time:.2,
+            rewind:true,
+            loop:true,
+            wait:10
+        })
+
+        timer.on("complete", () => {
+            gameover();
+        });
+
+        hope.on("pressmove", e => {
+            if (!mazBox.hitTestCircle(hope)) {
+                timer.stop();
+                gameover();
+            }
+            if (!hitCheck && hope.hitTestCircleRect(ahh)) {
+                hitCheck = true;
+
+                interval(.55, (obj) => {
+                    let r = rickRoll().show().loc(ahh.x-obj.count*120,ahh.y+obj.count*120);
+                    if(obj.count == 0) {
+                        r.on("close", () => {
+                            play.stop();
+                        });
+                     }
+                },5,true);
+
+                play = asset(sound[2]).play({loop:true,volume:5});
+                zogg();
+            }
+            if (!endCheck && hope.hitTestCircleRect(end)) {
+                e.remove();
+                endCheck = true;
+                startGame(1,secondLevel);
+                frame.color = orange;
+                zogo();
+            }
+        });
+        stage.update();
+    }
+
+    //secondLevel();
+    function secondLevel(){
+        background = asset("weird.jpg").center().sca(.7);
+        let backmusic = asset("stg2.m4a").play({loop:true});
+        sdmaze().addTo().alp(.95);
+
+        ahh = new Rectangle(50,50,red).centerReg().pos(-55,-170,CENTER,CENTER).animate({props:{alpha:0},time:2.5,rewind:true,loop:true,loopWait:.5});
+        secAhh = new Rectangle(50,50,red).centerReg().pos(300,80,LEFT,CENTER).animate({props:{alpha:0},time:2.5});
+        trap = new Rectangle(75,75,red).centerReg().pos(80,95,CENTER,CENTER).animate({props:{alpha:0},time:2.5,rewind:true,loop:true,loopWait:.5});
+        sdtrap = new Rectangle(60,60,red).centerReg().pos(-40,-30,CENTER,CENTER).animate({props:{alpha:0},time:2.5});
+        tdtrap = new Rectangle(60,60,red).centerReg().pos(-100,170,CENTER,CENTER).animate({props:{alpha:0},time:2.5});
+        end = new Rectangle(120,120,red).centerReg().pos(230,10,LEFT,BOTTOM).alp(0);
+        hope = new Circle(20, white).centerReg().pos(250,0,RIGHT,TOP).drag().effect(new GlowEffect({blurX:30, blurY:30}));
+        timer = new Timer({
+            time:20,
+        }).pos(0,0,LEFT,TOP);
+
+        timer.animate({
+            props:{scale:2,color:red},
+            time:.2,
+            rewind:true,
+            loop:true,
+            wait:15
+        })
+
+        timer.on("complete", () => {
+            gameover();
+        });
+
+        hope.on("pressmove", e => {
+            if (!mazBox.hitTestCircle(hope)) {
+                timer.stop();
+                gameover();
+            }
+            if (!hitCheck && hope.hitTestCircleRect(ahh)) {
+                hitCheck = true;
+
+                interval(.55, (obj) => {
+                    let r = rickRoll().show().loc(ahh.x-obj.count*120,ahh.y+obj.count*120);
+                    if(obj.count == 0) {
+                        r.on("close", () => {
+                            play.stop();
+                        });
+                     }
+                },3,true);
+
+                play = asset(sound[2]).play({loop:true,volume:5});
+                zogg();
+            }
+            if (!frCheck && hope.hitTestCircleRect(secAhh)) {
+                frCheck = true;
+
+                interval(.55, (obj) => {
+                    let s = badTime().show().loc(secAhh.x+obj.count*120,secAhh.y+obj.count*120);
+                    if(obj.count == 0) {
+                        s.on("close", () => {
+                            play.stop();
+                        });
+                     }
+                },2,true);
+
+                play = asset(sound[3]).play({loop:true,volume:2});
+                zogr();
+            }
+            if (!sdCheck && hope.hitTestCircleRect(trap)) {
+                sdCheck = true;
+
+                interval(.55, (obj) => {
+                    let c = cat().show().loc(trap.x+obj.count*120,trap.y+obj.count*120);
+                    if(obj.count == 0) {
+                        c.on("close", () => {
+                            play.stop();
+                        });
+                     }
+                },1,true);
+
+                play = asset(sound[1]).play({loop:true,volume:2});
+                zogp();
+            }
+            if (!tdCheck && hope.hitTestCircleRect(sdtrap)) {
+                tdCheck = true;
+
+                interval(.55, (obj) => {
+                    let r = rickRoll().show().loc(sdtrap.x+obj.count*120,sdtrap.y+obj.count*120).sca(2);
+                    if(obj.count == 0) {
+                        r.on("close", () => {
+                            play.stop();
+                        });
+                     }
+                },1,true);
+
+                play = asset(sound[2]).play({loop:true,volume:2});
+                zogp();
+            }
+            if (!foCheck && hope.hitTestCircleRect(tdtrap)) {
+                foCheck = true;
+
+                interval(.55, (obj) => {
+                    let s = badTime().show().loc(tdtrap.x+obj.count*120,tdtrap.y+obj.count*120).sca(1.5);
+                    if(obj.count == 0) {
+                        s.on("close", () => {
+                            play.stop();
+                        });
+                     }
+                },1,true);
+
+                play = asset(sound[3]).play({loop:true,volume:2});
+                zogp();
+                // stage.update();
+            }
+            if (!endCheck && hope.hitTestCircleRect(end)) {
+                e.remove();
+                endCheck = true;
+                startGame(2,thirdLevel);
+                frame.color = darker;
+                zogo();
+            }
+        });
+        stage.update();
+    };
+
+    let endGame;
+    //thirdLevel();
+    function thirdLevel(){
+
+        background = asset("chaos.jpg").center().sca(.7);
+
+        tdmaze().addTo();
+        ahh = new Rectangle(50,50,red).centerReg().pos(-135,102,CENTER,BOTTOM);
+        secAhh = new Rectangle(50,50,red).centerReg().pos(190,140,LEFT,TOP).animate({props:{alpha:0,x:350},time:2.5,rewind:true,loop:true,loopWait:.5});
+        trap = new Rectangle(70,70,red).centerReg().pos(110,75,CENTER,CENTER).animate({props:{alpha:0, y:610, x:550},ease:"snapInOut",time:2.5,rewind:true,loop:true,loopWait:.5});
+        sdtrap = new Rectangle(40,40,red).centerReg().pos(130,-28,LEFT,CENTER).animate({props:{alpha:0, x:300, rotation:270},time:2.5,rewind:true,loop:true,loopWait:.5});
+        tdtrap = new Rectangle(25,25,red).centerReg().pos(260,125,RIGHT,TOP).animate({props:{alpha:0, scale:3,rotation:360},time:2.5,rewind:true,loop:true,loopWait:.5});
+        end = new Rectangle(30,30,red).centerReg().pos(198,0,RIGHT,TOP);
+        hope = new Circle(20, white).centerReg().pos(220,0,LEFT,BOTTOM).drag().effect(new GlowEffect({blurX:30, blurY:30}));
+        timer = new Timer({
+            time:35,
+        }).pos(0,0,LEFT,TOP);
+
+        timer.animate({
+            props:{scale:2,color:red},
+            time:.2,
+            rewind:true,
+            loop:true,
+            wait:30
+        })
+
+        timer.on("complete", () => {
+            gameover();
+        });
+
+        hope.on("pressmove", e => {
+            if (!mazBox.hitTestCircle(hope)) {
+                timer.stop();
+                gameover();
+            }
+            if (!hitCheck && hope.hitTestCircleRect(ahh)) {
+                hitCheck = true;
+
+                interval(.55, (obj) => {
+                    let r = rickRoll().show().loc(ahh.x+obj.count*120,ahh.y-obj.count*120);
+                    if(obj.count == 0) {
+                        r.on("close", () => {
+                            play.stop();
+                        });
+                     }
+                },3,true);
+
+                play = asset(sound[2]).play({loop:true,volume:5});
+                zogg();
+            }
+            if (!frCheck && hope.hitTestCircleRect(secAhh)) {
+                frCheck = true;
+
+                interval(.55, (obj) => {
+                    let s = badTime().show().loc(secAhh.x+obj.count*120,secAhh.y+obj.count*120);
+                    if(obj.count == 0) {
+                        s.on("close", () => {
+                            play.stop();
+                        });
+                     }
+                },2,true);
+
+                play = asset(sound[3]).play({loop:true,volume:2});
+                zogr();
+            }
+            if (!sdCheck && hope.hitTestCircleRect(trap)) {
+                sdCheck = true;
+
+                interval(.55, (obj) => {
+                    let g = goose().show().loc(trap.x+obj.count*120,trap.y+obj.count*120);
+                    if(obj.count == 0) {
+                        g.on("close", () => {
+                            play.stop();
+                        });
+                     }
+                },1,true);
+
+                play = asset(sound[0]).play({loop:true,volume:2});
+                zogp();
+            }
+            if (!tdCheck && hope.hitTestCircleRect(sdtrap)) {
+                tdCheck = true;
+
+                interval(.55, (obj) => {
+                    let c = cat().show().loc(sdtrap.x+obj.count*120,sdtrap.y+obj.count*120).sca(2);
+                    if(obj.count == 0) {
+                        c.on("close", () => {
+                            play.stop();
+                        });
+                     }
+                },2,true);
+
+                play = asset(sound[1]).play({loop:true,volume:2});
+                zogp();
+            }
+            if (!foCheck && hope.hitTestCircleRect(tdtrap)) {
+                foCheck = true;
+
+                interval(.55, (obj) => {
+                    let g = goose().show().loc(tdtrap.x+obj.count*120,tdtrap.y+obj.count*120).sca(1.5);
+                    if(obj.count == 0) {
+                        g.on("close", () => {
+                            play.stop();
+                        });
+                     }
+                },2,true);
+
+                play = asset(sound[0]).play({loop:true,volume:2});
+                zogp();
+            }
+            if (!endCheck && hope.hitTestCircleRect(end)){
+                e.remove();
+                endCheck = true;
+                timer.stop();
+                timer.removeFrom();
+                endGame = new Emitter({
+                    obj:[
+                        new Circle(5,white).effect(new GlowEffect({blurX:100, blurY:100})),
+                        new Circle(15,white).effect(new GlowEffect({blurX:100, blurY:100})),
+                        new Circle(25,white).effect(new GlowEffect({blurX:100, blurY:100})),
+                      ],
+                      life:6.5,
+                      decayTime:3.5,
+                      gravity:0,
+                      force:1
+                    })
+                       .centerReg();
+                new Label({
+                    text:"You release the hope",
+                    color:green,
+                    shadowColor:black,
+                    shadowBlur:2
+                }).sca(2.6).center();
+
+                timeout(5,() => {
+                    zgo("index.html");
+                })
+            }
+        });
+        stage.update();
+    };
+
+    stage.update(); // needed to view changes
+});
+
+</script>
+<meta name="viewport" content="width=device-width, user-scalable=no" />
+</head>
+<body></body>
+</html>

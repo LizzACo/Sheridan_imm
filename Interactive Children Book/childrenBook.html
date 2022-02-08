@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>ZIM - Code Creativity</title>
+
+<!-- zimjs.com - JavaScript Canvas Framework -->
+<script src="https://zimjs.org/cdn/nft/00/zim.js"></script>
+
+<script>
+let count = 0; //this is counting for the how many icons are being placed on the pane
+let record = 0; // this is counting for dialogs
+
+let next = ["CandyHouse","Forest","Home"];
+
+const assets = ["gameIntro.jpg","candyHouse.png", "forest.png", "goHome.png","mainPage.png","mainPage2.png","mainPage3.png","item1.png", "item2.png", "item3.png", "item4.png", "item5.png", "item6.png",{font:"PressStart2P", src:"PressStart2P-Regular.ttf"},"background.m4a"];
+const path = "assets/";
+
+const mainPage = [["It is getting late. I should go home"],["You are being watched"],["I am watching you."]];
+
+const home = [[["Witch gives you some sweets"],["and invites you to visit her candy house"]],[["You find a hungry witch lying in front you"],["You give her an apple"],["Witch is happy and she pats your head"]],[["You encounter a witch and a squirrel"],["They are blocking your way home"],["Looks like they are having a fight"],["They are staring at each others grimly"]],[["A witch was experimenting with her magic"],["She had successfully turned a sweets into an apple"]],["You arrived home safely. Nothing happened. Just like any other peaceful day"]];
+
+const candyHouse = [[["A witch hit a squirrel with a lollipop"],["'STAY AWAY FROM MY HOUSE! You are not welcomed here!'"]],[["Your stomach is making some noises"],["You are hungry"],["Witch appears and gives you an apple"],["It tastes like candies and cakes"]],[["You lost your way.You were exhausted"],["You could smell the cakes and candies."], ["You could not hold yourself back"],["You ate the adornments of the Candy House."], ["An angry witch appeared in front of you"]],[["Your unfinished apple falls on the ground. It goes into the dark forest."],["You stand in front of the edge of the forest, hesitating to proceed"],["A squirrel appears.It is inviting you."],["Your curiosity overcomes your fear"],["You follow the squirrel into the forest"]],["You are lost. You have walked for hours and hours. You cannot find your way home"]];
+
+//zog(candyHouse[0][0]) //this is how we get value that is inside of an array of an array
+const forest = [[["Some sweets and an apple are blocking your way"],["You cannot ignore them. You pick them up and continue exploring the forest"]],[["You got scratched by a tree branch. You are bleeding"],["It hurts. You are holding back your cries"],["A witch appears and she pats your head. You feel comforted"],["Suddenly, you feel something warm and furry around your ankle"],["You look down. It is a squirrel. Its pearl-like black eyes look into yours"],["You feel you can understand what it is trying to tell you"]],[["A squirrel was attacking a witch with a bunch of apples. The witch dodged most of them"]],[["You encounter Squirrel.It is blocking your way."],["You have an apple and some sweets"],["For some reason, you decide to give Squirrel the sweets"],["Squirrel takes the sweets and leads you the way to home"]],["You are lost.You have walked for hours and hours.You cannot find your way home"]];
+
+let item1 = 0;
+let item2 = 0;
+let item3 = 0;
+let item4 = 0;
+let item5 = 0;
+let item6 = 0;
+
+//give a background colour to the icons
+let circle = new Circle(90,[orange,blue,pink,purple]);
+
+// See Docs under Frame for FIT, FILL, FULL, and TAG scaling modes
+const frame = new Frame(FIT, 1920, 1080, black, black, assets, path);
+frame.on("ready", () => {
+    const stage = frame.stage;
+    let stageW = frame.width;
+    let stageH = frame.height;
+
+    STYLE = {font:"PressStart2P"};
+
+    //the game instruction
+    instruction();
+    function instruction() {
+
+        const gameIntro = new Pane({
+          width:stageW-200,
+          height:stageH-200,
+          backgroundColor:"#2b3140",
+          label:new Label({color:"#f8df87", text:"Interactive Story Book", size:60})}).show()
+
+        gameIntro.label.mov(0,-300)
+
+        new Label({
+          labelWidth:stageW-500,
+          text:"You are the cat. Drag 3 icons and make your advanture. Start from the second scene and click arrows to go to the next page. Explore and have fun.",
+          align:CENTER,
+          size:50,
+          color:white,
+          lineHeight:75,
+      }).center(gameIntro).pos(0,50,CENTER,CENTER).noMouse();
+
+        // asset("gameIntro.jpg")
+        //     .scaleTo(gameIntro)
+        //     .noMouse()
+        //     .center(gameIntro)
+        //     .alp(.8)
+        //     .setMask(gameIntro.backing);
+
+        gameIntro.on("close",scenery);
+    };
+
+    let scenes;
+
+    //load the scenes
+    function scenery() {
+        const scene1 = new Page(stageW,stageH,darker);
+        const scene2 = new Page(stageW,stageH,darker);
+        const scene3 = new Page(stageW,stageH,darker);
+        const scene4 = new Page(stageW,stageH,darker);
+
+        scenes = new Pages([scene1,scene2,scene3,scene4],"slide").addTo();
+        asset("mainPage.png").centerReg(scene1).pos(0,50,CENTER,TOP).sca(1.8);
+        asset("goHome.png").centerReg(scene2).pos(0,50,CENTER,TOP).sca(1.8);
+        asset("candyHouse.png").centerReg(scene3).pos(0,50,CENTER,TOP).sca(1.8);
+        asset("forest.png").centerReg(scene4).pos(0,50,CENTER,TOP).sca(1.8);
+
+        const late = new Label(mainPage[0],45,null,white)
+        .centerReg()
+        .pos(0,50,CENTER,BOTTOM,scene1)
+        .top();
+
+        //left & right arrows that are taking controls of the pages
+        const sceneL = new Arrow({pages:scenes, direction:LEFT})
+            .rot(180)
+            .pos(80,50,LEFT,BOTTOM)
+            .sca(2);
+        const sceneR = new Arrow({pages:scenes})
+            .pos(80,100,RIGHT,BOTTOM)
+            .sca(2);
+
+        asset("background.m4a").play({volume:1,loop:true});
+
+       // diactivate the arrows before the storyboard pops up
+       scenes.on("page", () => {
+           // the main page is not going to be effect by arrow/no arrow
+           // the 2nd & 3rd page are going to be effect by arrow/no arrow
+           // the last page is going to be effected by the timer but the right arrow
+           // should not be blue after the timer
+
+           //zogo(scenes.index);
+           if(scenes.index > 0 && scenes.index <= 3){
+               timeout(1.3, makeStory);
+               // players should not change pages when the storyboard is not on
+               // the page
+               // set a colour of indication which players should not click
+               // the arrows
+                   timeout(.01, () => {
+                       sceneL.noMouse();
+                       sceneR.noMouse();
+                       sceneL.icon.color = grey;
+                       sceneL.rollIcon.color = grey;
+                       sceneR.icon.color = grey;
+                       sceneR.rollIcon.color = grey;
+                       stage.update();
+                   });
+               // when the storyboard pop up players can again click the
+               // arrow if they want to see other scenes
+                   timeout(1.3, () => {
+                       sceneL.mouse();
+                       sceneR.mouse();
+                       // set the arrows back to blue
+                       sceneL.icon.color = blue;
+                       sceneL.rollIcon.color = blue;
+                       sceneR.icon.color = blue;
+                       sceneR.rollIcon.color = blue;
+                       stage.update();
+                   });
+              };
+            if(storyBoard) storyBoard.dispose();
+            if(tile) tile.removeFrom();
+            if(storyCard)storyCard.dispose();
+
+            //reset the counts
+            num = 1;
+            count = 0;
+
+            item1 = 0;
+            item2 = 0;
+            item3 = 0;
+            item4 = 0;
+            item5 = 0;
+            item6 = 0;
+       });
+       stage.update();
+
+       //a bonous ending for players who stay at the main scene for more than 30 seconds
+       timeout(30, () => {
+          asset("mainPage2.png").centerReg(scene1).pos(0,50,CENTER,TOP).sca(1.8);
+          late.text = mainPage[1];
+          stage.update();
+       })
+       timeout(32, () => {
+          asset("mainPage3.png").centerReg(scene1).pos(0,50,CENTER,TOP).sca(1.8);
+          late.text = mainPage[2];
+          stage.update();
+       })
+    }//end of scenery
+
+    //display the dialogs when players click the arrows
+    function dialog(lines){
+            let storyLine = new Label({
+                text:lines[0],
+                lineWidth:800,
+                size:50
+            });
+
+            const dialogBox = new Container(storyLine.width,storyLine.height);
+            storyLine.addTo(dialogBox);
+
+            //set left and right arrows for the story to proceed
+            const arrowR = new Arrow({trans:"slide"})
+            .centerReg(dialogBox)
+            .cur()
+            .loc(dialogBox.width + 80, dialogBox.height/2)
+            .sca(2);
+
+            const arrowL = new Arrow({trans:"slide"})
+            .centerReg(dialogBox)
+            .cur()
+            .rot(180)
+            .loc(-80 , dialogBox.height/2)
+            .sca(2);
+            arrowL.icon.color = grey;
+            arrowL.rollIcon.color = grey;
+
+            //activiate the arrows when players click them
+            arrowR.on("click",() => {
+                if (record < lines.length-1){
+                    arrowL.mouse();
+                    arrowL.icon.color = blue;
+                    arrowL.rollIcon.color = blue;
+                    record ++;
+                }
+                if (record == lines.length-1) {
+                    arrowR.icon.color = grey;
+                    arrowR.rollIcon.color = grey;
+                    arrowR.noMouse();
+                }
+                storyLine.text = lines[record];
+                stage.update();
+            })
+            arrowL.on("click",() => {
+                if (record > 0) {
+                    arrowR.mouse();
+                    arrowR.icon.color = blue;
+                    arrowR.rollIcon.color = blue;
+                    record --;
+                }
+                if(record == 0){
+                    arrowL.icon.color = grey;
+                    arrowL.rollIcon.color = grey;
+                    arrowL.noMouse();
+                }
+                storyLine.text = lines[record];
+                stage.update();
+            })
+        return dialogBox;
+    }//end of dialog
+
+    function icons(){
+        icon = new Container();
+        icon.mouseChildren= false;
+        circle.clone().addTo(icon);
+        asset("item"+num+".png").scaleTo(icon,90,90).center(icon);
+        if (num <= 6)num++;
+        return icon;
+    }//end of icons
+
+    let storyBoard;
+    let storyCard;
+    let tile;
+    let currentDialog;
+    let icon;
+    let num = 1;
+    let hit;
+
+    function makeStory(){
+        //put the pane in the middle of the scene that is going to hold onto the icons
+        //set to noMouse to keep the pane open all the time
+         storyBoard = new Pane({
+            width:1200,
+            height:750,
+            modal:false
+        })
+        .centerReg()
+        .pos(0,80,CENTER,TOP)
+        .noMouse();
+
+        //display the icons at the bottom of the page as a tile
+        //only three icons should be moveble
+        tile = new Tile({
+            obj:icons,
+            cols:6,
+            rows:1,
+            spacingH:circle.radius / 2,
+        })
+        .pos(0, 50, CENTER, BOTTOM)
+        .drag();
+
+        tile.loop(icons => {
+            icons.startX = icons.x;
+            icons.startY = icons.y;
+        });
+
+        //counts go up to three, which means the user can only move up to three icons
+        tile.on("pressup", e => {
+            hit = e.target;
+
+            //if the hittest is successful, then the story would appear
+            if(storyBoard.backing.hitTestReg(hit)){
+                count++;
+                if(hit == tile.items[0]) item1 = 1;
+                if(hit == tile.items[1]) item2 = 1;
+                if(hit == tile.items[2]) item3 = 1;
+                if(hit == tile.items[3]) item4 = 1;
+                if(hit == tile.items[4]) item5 = 1;
+                if(hit == tile.items[5]) item6 = 1;
+                // zog(item1,item2,item3,item4,item5,item6);
+            }else{
+                hit.animate({x:hit.startX, y:hit.startY},.3);
+            }
+            if (count >= 3){
+                tile.noMouse();
+                storyBoard.removeFrom();
+                storyAppear();
+                stage.update();
+            } else {
+                tile.mouse();
+            };
+        });
+        stage.update();
+    };//end of makeStory function
+
+    let gotoButton;
+    let gonum = 0;
+    let restart;
+    let endbutton;
+
+    function storyAppear(){
+        storyCard = new Pane({
+            width:1200,
+            height:750,
+            modal:false,
+            displayClose:false,
+            backdropClose:false
+        })
+        .centerReg()
+        .pos(0,80,CENTER,TOP);
+
+        //buttons that redirect the players to different scenes
+        gotoButton = new Button({
+            width:380,
+            height:100,
+            label:next[gonum]// this will be determined by the conditions
+        });
+
+        gotoButton.pos(200,50, LEFT, BOTTOM,storyCard);
+        gotoButton.alpha = 0;
+        gotoButton.animate({
+            props:{alpha:1},
+            time:2,
+            wait:2
+        });
+
+        gotoButton.label.size = 35;
+
+        // this is where different endings happen
+        if (scenes.index == 1){
+            //ending 1
+            if(item1 == 1 && item2 == 1 && item4 == 1 || item1 == 1 && item3 == 1 && item4 == 1 ) {
+                currentDialog = dialog(home[0]).center(storyCard);
+                gonum = 0;
+                gotoButton.text = next[gonum];
+                endgame();
+                zogb();
+            //ending 2
+            }else if (item1 == 1 && item6 == 1 && item4 == 1){
+                currentDialog = dialog(home[1]).center(storyCard);
+                endgame();
+                gotoButton.removeFrom();
+                movebutton();
+                zogr();
+            //ending 3
+            }else if (item1 == 1 && item5 == 1 && item4 == 1){
+                currentDialog = dialog(home[2]).center(storyCard);
+                endgame();
+                gotoButton.removeFrom();
+                movebutton();
+                zogg();
+            //ending 4
+            }else if (item6 == 1 && item2 == 1 || item3 == 1 && item4 == 1 || item6 == 1 && item3 == 1 && item4 == 1){
+                currentDialog = dialog(home[3]).center(storyCard);
+                endgame();
+                gotoButton.removeFrom();
+                movebutton();
+                zogo();
+            //ending 5
+            }else{
+                currentDialog = dialog(home[4]).center(storyCard);
+                endgame();
+                gotoButton.removeFrom();
+                movebutton();
+                zogp();
+            };
+        };//end of index 1
+
+        if (scenes.index == 2){
+            //ending 1
+            if(item2 == 1 && item4 == 1 && item5 == 1){
+                currentDialog = dialog(candyHouse[0]).center(storyCard);
+                endgame();
+                gotoButton.removeFrom();
+                movebutton();
+            //ending 2
+            }else if(item1 == 1 && item6 == 1 && item4 == 1){
+                currentDialog = dialog(candyHouse[1]).center(storyCard);
+                endgame();
+                gotoButton.removeFrom();
+                movebutton();
+            //ending 3
+            }else if(item1 == 1 && item2 == 1 && item4 == 1 ||item1 == 1 && item3 == 1 && item4 == 1 ){
+                currentDialog = dialog(candyHouse[2]).center(storyCard);
+                endgame();
+                gotoButton.removeFrom();
+                movebutton();
+            //ending 4
+            }else if(item1 == 1 && item6 == 1 && item5 == 1){
+                currentDialog = dialog(candyHouse[3]).center(storyCard);
+                gonum = 1;
+                gotoButton.text = next[gonum];
+                endgame();
+            //ending 5
+            }else{
+                currentDialog = dialog(candyHouse[4]).center(storyCard);
+                endgame();
+                gotoButton.removeFrom();
+                movebutton();
+            };
+        };//end of index 2
+
+        if(scenes.index == 3){
+            //ending 1
+            if(item1 == 1 && item2 == 1 && item6 == 1 ||item1 == 1 && item3 == 1 && item6 == 1 ){
+                currentDialog = dialog(forest[0]).center(storyCard);
+                endgame();
+                gotoButton.removeFrom();
+                movebutton();
+            //ending 2
+            }else if(item1 == 1 && item4 == 1 && item5 == 1){
+                currentDialog = dialog(forest[1]).center(storyCard);
+                endgame();
+                gotoButton.removeFrom();
+                movebutton();
+            //ending 3
+            }else if(item6 == 1 && item4 == 1 && item5 == 1){
+                currentDialog = dialog(forest[2]).center(storyCard);
+                endgame();
+                gotoButton.removeFrom();
+                movebutton();
+            //ending 4
+            }else if(item1 == 1 && item2 == 1 && item5 == 1||item1 == 1 && item3 == 1 && item5 == 1 ){
+                currentDialog = dialog(forest[3]).center(storyCard);
+                gonum = 2;
+                gotoButton.text=next[gonum];
+                endgame();
+            //ending 5
+            }else{
+                currentDialog = dialog(forest[4]).center(storyCard);
+                endgame();
+                gotoButton.removeFrom();
+                movebutton();
+            };
+            stage.update();
+        };//end of index 3
+
+        gotoButton.on("click",() => {
+          if(gonum == 0){
+            scenes.go(index = 2);
+            zogb();
+          }else if (gonum == 1) {
+            scenes.go(index = 3);
+            zogr();
+          }else if (gonum == 2) {
+            scenes.go(index = 1);
+            zogg();
+          }
+          stage.update();
+      });
+  };//end of storyAppear
+
+  function endgame(){
+      restart = new Button({
+             width:340,
+             height:100,
+             label:"Restart"
+         })
+         .addTo(storyCard)
+         .pos(600,50, LEFT, BOTTOM)
+         .tap(() => {
+           if(storyBoard) storyBoard.dispose();
+           if(tile) tile.removeFrom();
+           if(storyCard)storyCard.dispose();
+
+           num = 1;
+           count = 0;
+
+           item1 = 0;
+           item2 = 0;
+           item3 = 0;
+           item4 = 0;
+           item5 = 0;
+           item6 = 0;
+           makeStory();
+
+         });
+       }
+
+    function movebutton(){
+         restart.mov(-160);
+     };
+
+    stage.update();
+});
+
+</script>
+<meta name="viewport" content="width=device-width, user-scalable=no" />
+</head>
+<body></body>
+</html>
