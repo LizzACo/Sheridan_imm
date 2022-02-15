@@ -2,7 +2,7 @@ const fs = require('fs');
 const _ = require('lodash');
 
 var addNote = (title, body) =>{
-    var notes = fetchNotes();
+    var notes = fetchNotes();//checking for dublicates
     var note = {title, body};    
     
 
@@ -18,7 +18,7 @@ var addNote = (title, body) =>{
 }
 
 var saveNotes = (notes) => {
-    fs.writeFileSync('notes-data.json', JSON.stringify(notes));
+    fs.writeFileSync('notes-data.json', JSON.stringify(notes));// write updates to our json notes 
 };
 
 var fetchNotes = () => {

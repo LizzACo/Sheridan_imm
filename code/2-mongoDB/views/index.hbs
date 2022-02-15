@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Notes app</title>
+  <style>
+  		li{
+  			margin:20px;
+  		}
+	</style>
+</head>
+<body>
+  <a href="/add-note">Add Note</a>
+  <h2>Les Notes</h2>
+    <ul class="notes">
+		{{#each notes}}
+		<li>
+	  		<div>Le Title: {{note-title}}</div>
+	  		<div>Le body: {{note-body}}</div>
+	  	</li>
+		{{/each}}
+  </ul>
+</body>
+</html>

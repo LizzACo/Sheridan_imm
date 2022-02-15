@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>First Day Announcement</title>
+
+<!-- zimjs.com - JavaScript Canvas Framework -->
+<script src="https://zimjs.org/cdn/nft/00/zim.js"></script>
+
+<script>
+
+const assets = ["avatar.png","background.jpg",{font:"PressStart2P", src:"PressStart2P-Regular.ttf"}];
+
+const path = "assets/"; // relative path
+
+const selfIntro = ["Hi, I am Alice.", "I am a postgraduate student of Interactive Media Management.", "I took the courses last Fall", "and now I am the part-time tutor for this program this Winter.","Lets Study!"];
+
+const service = ["1 -on- 1 session for each student is 2 hours weekly.","Drop-in sessions are also avalible for students who want to study with their classmates and compare their notes.", "Sessions are for students who want to improve their understanding of course matieral and their grade.", "Attendance is voluntary."];
+
+const benefit = ["Tutoring is Free for all students!","Students who attend tutoring sessions statistcally earn better grades!", "Improve understanding of importrant concerpts!", "Develop study and learning strategies!"];
+
+const detail = ["For how to book and where you can book an appointment, please check out the video below.","Hope to see you soon!", "https://youtu.be/t7d36gM-IWA"];
+
+const freeTalk = ["U know, there're two ways to find me: my sheridan email & WebEx", "Remember to come back for updates meow~!", "meow~ meow~", "How was your day today~?~"]
+
+// See Docs under Frame for FIT, FILL, FULL, and TAG scaling modes
+const frame = new Frame(FIT, 1024, 768, light, dark, assets, path);
+frame.on("ready", () => {
+    const stage = frame.stage;
+    let stageW = frame.width;
+    let stageH = frame.height;
+
+    STYLE = {font:"PressStart2P"};
+
+    // put your code here
+    asset("background.jpg").centerReg().sca(.2);
+
+    let opening = new Pane(500, 220, "First Day Announcement").show();
+
+    opening.label.size = 20;
+
+    opening.on("close", intro);
+
+    let growLine;
+    let num = 0;
+    let dialog;
+    let me;
+
+    //intro();
+    function intro(){
+        me = asset("avatar.png")
+            .centerReg()
+            .alp(0)
+            .sca(.25)
+            .pos(0, 0, CENTER,BOTTOM)
+            .animate({
+                props:{alpha:1, y:stageH-200},
+                time: 1.3
+            });
+
+        dialog = new Pane(stageW - 100, 200, myLines(num))
+            .centerReg()
+            .pos(0,50,CENTER,TOP)
+            .noMouse();
+
+        let skip = new Button(80, 50, "SKIP", blue)
+            .centerReg()
+            .pos(70,180,RIGHT,TOP);
+
+        skip.label.size = 15;
+
+        interval(2.5, () => {
+            if (num < selfIntro.length - 1) num++;
+            if (growLine) growLine.dispose();
+            dialog.label = myLines(num).pos(0,75,CENTER,TOP);
+            stage.update();
+        },selfIntro.length);
+
+        skip.on("click", () => {
+            me.animate({
+                props:{x:200},
+                time:.8,
+                call:details
+            });
+            dialog.removeFrom();
+            growLine.removeFrom();
+            skip.removeFrom();
+            stage.update();
+        })
+
+        timeout(2.5 * 5, () => {
+            dialog.mouse();
+        });
+
+        dialog.on("close", () => {
+            skip.removeFrom();
+            me.animate({
+                props:{x:200},
+                time:.8,
+                call:details
+            });
+        });
+        stage.update();
+    }
+
+    function myLines(line){
+        growLine = new Label({
+            text:selfIntro[line],
+            size:20,
+            align:CENTER,
+            lineWidth:850
+        })
+            .addTo(dialog);
+        return growLine;
+    }
+
+    let buttonA;
+    let buttonB;
+    let buttonC;
+
+    function buttonOne(){
+        buttonA = new Button(300, 100, "Tutor Service",yellow)
+            .centerReg()
+            .alp(0)
+            .pos(150, 100, RIGHT,TOP)
+            .animate({
+                props:{alpha:1}
+            });
+        buttonA.label.size = 20;
+
+        buttonA.on("click", () => {
+            buttonB.removeFrom();
+            buttonC.removeFrom();
+            buttonA.removeFrom();
+
+            popUp();
+
+            loop(service.length, i => {
+                label = new Label({
+                    text:service[i],
+                    size:20,
+                    lineWidth:650,
+                })
+                    .addTo(box)
+                    .centerReg()
+                    .pos(20,i * 120 - 180,CENTER,CENTER);
+                stage.update();
+            })
+
+            box.on("close", () => {
+                buttonOne();
+                buttonTwo();
+                buttonThree();
+            })
+        });
+        return buttonA;
+    };
+
+    function buttonTwo(){
+        buttonB = new Button(300, 100, "Your Benefits",yellow)
+           .centerReg()
+           .alp(0)
+           .pos(150, 0, RIGHT,CENTER)
+           .animate({
+               props:{alpha:1},
+               time:1.5
+           });
+        buttonB.label.size = 20;
+
+        buttonB.on("click", () => {
+                buttonA.removeFrom();
+                buttonC.removeFrom();
+                buttonB.removeFrom();
+
+                popUp();
+
+                loop(benefit.length, i => {
+                    label = new Label({
+                        text:benefit[i],
+                        size:20,
+                        lineWidth:700,
+                    })
+                        .addTo(box)
+                        .centerReg()
+                        .pos(15,i * 120 - 200,CENTER,CENTER);
+                    stage.update();
+                });
+
+                box.on("close", () => {
+                    buttonOne();
+                    buttonTwo();
+                    buttonThree();
+                });
+        });
+        return buttonB;
+    };
+
+    function buttonThree(){
+        buttonC = new Button(300, 100, "Session Details",yellow)
+           .centerReg()
+           .alp(0)
+           .pos(150, 100, RIGHT,BOTTOM)
+           .animate({
+               props:{alpha:1},
+               time:2
+           });
+
+        buttonC.label.size = 17.5;
+
+        buttonC.on("click", () => {
+             buttonA.removeFrom();
+             buttonB.removeFrom();
+             buttonC.removeFrom();
+
+             popUp();
+
+             loop(detail.length, i => {
+                 label = new Label({
+                     text:detail[i],
+                     size:20,
+                     lineWidth:700,
+                 })
+                     .addTo(box)
+                     .centerReg()
+                     .pos(10,i * 130 - 120,CENTER,CENTER);
+                 stage.update();
+             })
+
+            label.on("click", () => {
+                zgo("https://youtu.be/t7d36gM-IWA");
+            });
+
+             box.on("close", () => {
+                 buttonOne();
+                 buttonTwo();
+                 buttonThree();
+             })
+        });
+        return buttonC;
+    };
+
+    let box;
+    function popUp(){
+        box = new Pane(800, 600, "Click anywhere to return")
+            .centerReg()
+            .pos(50,0,RIGHT,CENTER);
+
+        box.label.pos(0,10,CENTER,BOTTOM);
+        box.label.size = 15;
+        box.label.color = blue;
+        box.label.animate({props:{alpha:0},loop:true,loopWait:.8,rewind:true,rewindWait:.3});
+        return box;
+    }
+
+    let label;
+    let text;
+    let casual;
+    function details() {
+
+        me.animate({
+            wait:1,
+            props:{x:300},
+            time:.5,
+            loop:true,
+            loopWait:.5,
+            rewind:true,
+            rewindWait:.5
+        });
+
+        me.on("click",() => {
+            me.animate({
+                props:{rotation:360},
+                time:.5,
+                ease:"linear"
+            });
+            stage.update();
+        });
+
+        casual = new Pane ({width:300, height:200, backdropColor:"rgba(0,0,0,0)"})
+            .centerReg()
+            .pos(100,-100,LEFT,CENTER);
+
+        interval(6, () => {
+            text = new Label({
+                text: freeTalk[rand(0,3)],
+                size: 18,
+                lineWidth: 200,
+            });
+
+            timeout(5, () => {
+                text.removeFrom();
+                stage.update();
+            });
+
+            text.addTo(casual);
+            text.pos(0,0,CENTER,CENTER);
+            stage.update();
+        },null,true);
+
+        buttonOne();
+        buttonTwo();
+        buttonThree();
+
+        stage.update();
+    }
+
+    stage.update(); // needed to view changes
+});
+
+</script>
+<meta name="viewport" content="width=device-width, user-scalable=no" />
+</head>
+<body></body>
+</html>
